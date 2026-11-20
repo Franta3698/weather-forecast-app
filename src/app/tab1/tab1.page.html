@@ -1,0 +1,36 @@
+
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Weather Today</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  @if (weather$ | async; as weather) {
+
+    <h1>Zlín</h1>
+
+    <h2>{{ weather.current.temperature_2m }} °C</h2>
+
+    <p>
+      Feels like:
+      {{ weather.current.apparent_temperature }} °C
+    </p>
+
+    <p>
+      Humidity:
+      {{ weather.current.relative_humidity_2m }} %
+    </p>
+
+    <p>
+      Wind:
+      {{ weather.current.wind_speed_10m }} km/h
+    </p>
+
+  } @else {
+    <ion-spinner></ion-spinner>
+    <p>Loading weather...</p>
+  }
+
+</ion-content>
