@@ -1,4 +1,3 @@
-
 <ion-header>
   <ion-toolbar>
     <ion-title>Weather Today</ion-title>
@@ -6,10 +5,17 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-
+  <div class="city-management" style="margin-bottom: 20px;">
+      <ion-item>
+        <ion-input label="Zadej město" labelPlacement="stacked" placeholder="např. Praha, Ostrava..." #cityInput></ion-input>
+      </ion-item>
+      <ion-button expand="block" (click)="changeCity(cityInput.value?.toString() ?? '')" style="margin-top: 10px;">
+        Změnit město
+      </ion-button>
+    </div>
   @if (weather$ | async; as weather) {
 
-    <h1>Zlín</h1>
+    <h1>{{ getCity() }}</h1>
 
     <h2>{{ weather.current.temperature_2m }} °C</h2>
 
@@ -27,6 +33,30 @@
       Wind:
       {{ weather.current.wind_speed_10m }} km/h
     </p>
+
+    <h2>Hourly forecast</h2>
+
+
+
+    <ion-list>
+      @for (
+        time of weather.hourly.time.slice(0, 24);
+        track time;
+        let i = $index
+      ) {
+        <ion-item>
+          <ion-label>
+            <h3>{{ time.substring(11, 16) }}</h3>
+            <p>Feels like: {{ weather.hourly.apparent_temperature[i] }} °C</p>
+            <p>Rain: {{ weather.hourly.precipitation_probability[i] }} %</p>
+          </ion-label>
+
+          <ion-note slot="end">
+            {{ weather.hourly.temperature_2m[i] }} °C
+          </ion-note>
+        </ion-item>
+      }
+    </ion-list>
 
   } @else {
     <ion-spinner></ion-spinner>
