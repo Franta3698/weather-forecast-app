@@ -23,8 +23,13 @@
               <p>Počasí se nepodařilo načíst.</p>
             }
           </ion-label>
-
           <ion-button
+            slot="end"
+            fill="outline"
+            (click)="removeCity(city.name)">
+            Zobrazit
+          </ion-button>
+            <ion-button
             slot="end"
             color="danger"
             fill="outline"

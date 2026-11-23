@@ -45,10 +45,11 @@ export class Tab1Page {
   private cityService = inject(CityService);
   private geocodingService = inject(GeocodingService);
   private refreshSubscription?: Subscription;
-  selectedCity: string = 'Zadejte město';
+  selectedCity: string = '';
 
   weather$ = this.weatherService.getForecastByCity(this.selectedCity);
   ionViewWillEnter(): void {
+    this.loadWeatherByCurrentLocation();
     this.refreshSubscription = interval(REFRESH_INTERVAL)
       .subscribe(() => {
         this.refreshWeather();

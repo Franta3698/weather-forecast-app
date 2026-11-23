@@ -12,10 +12,6 @@ import {
   templateUrl: './city.component.html',
   styleUrl: './city.component.scss',
   imports: [
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardContent,
     IonButton
   ]
 })
