@@ -1,4 +1,5 @@
-import { Component, inject } from '@angular/core';
+const REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minut
+import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -10,10 +11,9 @@ import {
   IonButton,
   IonSpinner
 } from '@ionic/angular';
-
 import { WeatherService } from '../services/weather';
 import { CityService } from '../services/city';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, retry, interval, Subscription } from 'rxjs';
 
 interface FavoriteCity {
   name: string;
@@ -39,6 +39,8 @@ interface FavoriteCity {
 export class Tab2Page {
   private cityService = inject(CityService);
   private weatherService = inject(WeatherService);
+  private cdr = inject(ChangeDetectorRef);
+  private refreshSubscription?: Subscription;
 
   cities: FavoriteCity[] = [];
   loading = false;
@@ -46,40 +48,65 @@ export class Tab2Page {
 
   async ionViewWillEnter(): Promise<void> {
     await this.loadCities();
+    console.log('Tab2 se otevřela');
+    this.refreshSubscription = interval(REFRESH_INTERVAL)
+    .subscribe(() => {
+      this.loadCities();
+    });
   }
 
+  ionViewWillLeave(): void {
+  this.refreshSubscription?.unsubscribe();
+  }
   async loadCities(): Promise<void> {
-    this.loading = true;
+  this.loading = true;
 
-    try {
-      const savedCities = await this.cityService.getCities();
+  try {
+    const savedCities = await this.cityService.getCities();
 
-      this.cities = await Promise.all(
-        savedCities.map(async (name) => {
-          try {
-            const weather = await firstValueFrom(
-              this.weatherService.getForecastByCity(name)
-            );
+    console.log('Uložená města:', savedCities);
 
-            return {
-              name,
-              temperature: weather.current.temperature_2m
-            };
-          } catch {
-            return {
-              name,
-              temperature: null
-            };
-          }
-        })
-      );
-    } finally {
-      this.loading = false;
-    }
+    this.cities = await Promise.all(
+      savedCities.map(async (name) => {
+        try {
+          const weather = await firstValueFrom(
+            this.weatherService.getForecastByCity(name).pipe(
+              retry(2)
+            )
+            
+          );
+
+          console.log(
+            `Počasí pro ${name}:`,
+            weather.current.temperature_2m
+          );
+
+          return {
+            name,
+            temperature: weather.current.temperature_2m
+          };
+        } catch (error) {
+          console.error(`Chyba při načítání ${name}:`, error);
+
+          return {
+            name,
+            temperature: null
+          };
+        }
+      })
+    );
+
+    console.log('Výsledná města:', this.cities);
+
+  } finally {
+    this.loading = false;
+    this.cdr.detectChanges();
   }
+}
 
   async removeCity(name: string): Promise<void> {
     await this.cityService.removeCity(name);
     this.cities = this.cities.filter(city => city.name !== name);
   }
+
 }

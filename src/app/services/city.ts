@@ -39,4 +39,13 @@ export class CityService {
       value: JSON.stringify(cities)
     });
   }
+  async removeCurrentLocation(): Promise<void> {
+  const cities = (await this.getCities())
+    .filter(city => city !== 'Aktuální poloha');
+
+  await Preferences.set({
+    key: this.STORAGE_KEY,
+    value: JSON.stringify(cities)
+  });
+  }
 }

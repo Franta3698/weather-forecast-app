@@ -10,7 +10,7 @@
         <ion-input label="Zadej město" labelPlacement="stacked" placeholder="např. Praha, Ostrava..." #cityInput></ion-input>
       </ion-item>
       <ion-button expand="block" (click)="changeCity(cityInput.value?.toString() ?? '')" style="margin-top: 10px;">
-        Změnit město
+        Najít město
       </ion-button>
       <app-city
         [cityName]="selectedCity"
