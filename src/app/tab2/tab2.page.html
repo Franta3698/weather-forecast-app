@@ -1,15 +1,41 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title> Tab 2 </ion-title>
+    <ion-title>Oblíbená města</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 2</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
 
-  <app-explore-container name="Tab 2 page"></app-explore-container>
+  @if (loading) {
+    <ion-spinner></ion-spinner>
+    <p>Načítám města...</p>
+  } @else if (cities.length === 0) {
+    <h2>Zatím nemáš žádná oblíbená města.</h2>
+    <p>Přidej si nějaké na první stránce.</p>
+  } @else {
+    <ion-list>
+      @for (city of cities; track city.name) {
+        <ion-item>
+          <ion-label>
+            <h2>{{ city.name }}</h2>
+
+            @if (city.temperature !== null) {
+              <p>Aktuální teplota: {{ city.temperature }} °C</p>
+            } @else {
+              <p>Počasí se nepodařilo načíst.</p>
+            }
+          </ion-label>
+
+          <ion-button
+            slot="end"
+            color="danger"
+            fill="outline"
+            (click)="removeCity(city.name)">
+            Odebrat
+          </ion-button>
+        </ion-item>
+      }
+    </ion-list>
+  }
+
 </ion-content>

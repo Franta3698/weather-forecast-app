@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Weather Today</ion-title>
+    <ion-title>Rychlý přehled</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -11,6 +11,13 @@
       </ion-item>
       <ion-button expand="block" (click)="changeCity(cityInput.value?.toString() ?? '')" style="margin-top: 10px;">
         Změnit město
+      </ion-button>
+      <app-city
+        [cityName]="selectedCity"
+        (addFavorite)="addFavoriteCity($event)"
+      />
+      <ion-button expand="block" color="secondary" (click)="loadWeatherByCurrentLocation()" style="margin-top: 10px;">
+      Použít moji aktuální polohu
       </ion-button>
     </div>
   @if (weather$ | async; as weather) {
