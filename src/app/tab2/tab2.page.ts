@@ -14,7 +14,7 @@ import {
 import { WeatherService } from '../services/weather';
 import { CityService } from '../services/city';
 import { firstValueFrom, retry, interval, Subscription } from 'rxjs';
-
+import { Router } from '@angular/router';
 interface FavoriteCity {
   name: string;
   temperature: number | null;
@@ -41,6 +41,7 @@ export class Tab2Page {
   private weatherService = inject(WeatherService);
   private cdr = inject(ChangeDetectorRef);
   private refreshSubscription?: Subscription;
+  private router = inject(Router);
 
   cities: FavoriteCity[] = [];
   loading = false;
@@ -108,5 +109,10 @@ export class Tab2Page {
     await this.cityService.removeCity(name);
     this.cities = this.cities.filter(city => city.name !== name);
   }
+ showCity(name: string): void {
+  this.router.navigate(['/tabs/tab1'], {
+    queryParams: { city: name }
+  });
+}
 
 }

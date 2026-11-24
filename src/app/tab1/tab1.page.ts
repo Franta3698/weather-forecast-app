@@ -1,15 +1,12 @@
 const REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minut
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectorRef} from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
   IonTitle,
   IonContent,
   IonSpinner,
-  IonList,
   IonItem,
-  IonNote,
-  IonLabel,
   IonButton,
   IonInput
 } from '@ionic/angular';
@@ -19,7 +16,8 @@ import { AsyncPipe } from '@angular/common';
 import { WeatherService } from '../services/weather';
 import { CityService } from '../services/city';
 import { CityComponent } from '../components/city/city.component';
-
+import { TemperatureChartComponent } from '../components/temperature-chart/temperature-chart.component';
+import { ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
@@ -27,17 +25,15 @@ import { CityComponent } from '../components/city/city.component';
   imports: [IonButton, IonHeader, 
     IonInput,
     IonButton,
-    IonLabel,
-    IonNote,
     IonItem,
-    IonList,
     IonHeader,
     IonToolbar,
     IonTitle,
     IonContent,
     AsyncPipe,
     IonSpinner,
-    CityComponent
+    CityComponent,
+    TemperatureChartComponent
   ],
 })
 export class Tab1Page {
@@ -45,33 +41,59 @@ export class Tab1Page {
   private cityService = inject(CityService);
   private geocodingService = inject(GeocodingService);
   private refreshSubscription?: Subscription;
-  selectedCity: string = '';
+  private currentLatitude?: number;
+  private currentLongitude?: number;
+  private cdr = inject(ChangeDetectorRef);
+  private route = inject(ActivatedRoute);
+  selectedCity: string = 'Zlín';
 
   weather$ = this.weatherService.getForecastByCity(this.selectedCity);
-  ionViewWillEnter(): void {
-    this.loadWeatherByCurrentLocation();
-    this.refreshSubscription = interval(REFRESH_INTERVAL)
-      .subscribe(() => {
-        this.refreshWeather();
-      });
+ionViewWillEnter(): void {
+  const city = this.route.snapshot.queryParamMap.get('city');
+
+  if (city) {
+    this.changeCity(city);
+  } else {
+    this.refreshWeather();
   }
 
-  refreshWeather(): void {
-  this.weather$ = this.weatherService.getForecastByCity(
-    this.selectedCity
-  );
+  this.refreshSubscription?.unsubscribe();
+
+  this.refreshSubscription = interval(REFRESH_INTERVAL)
+    .subscribe(() => {
+      this.refreshWeather();
+    });
+}
+refreshWeather(): void {
+  if (this.currentLatitude !== undefined &&
+      this.currentLongitude !== undefined) {
+
+    this.weather$ = this.weatherService.getForecast(
+      this.currentLatitude,
+      this.currentLongitude
+    );
+
+  } else {
+    this.weather$ = this.weatherService.getForecastByCity(
+      this.selectedCity
+    );
+  }
 }
 ionViewWillLeave(): void {
   this.refreshSubscription?.unsubscribe();
 }
-  getCity(): string {
-    return this.selectedCity;
-  }
 
-  changeCity(newCity: string): void {
-    this.selectedCity = newCity;
-    this.weather$ = this.weatherService.getForecastByCity(this.selectedCity);
-  }
+ changeCity(newCity: string): void {
+  const city = newCity.trim();
+
+  if (!city) return;
+
+  this.weather$ = this.weatherService.getForecastByCity(city);
+  this.selectedCity = city;
+
+  this.currentLatitude = undefined;
+  this.currentLongitude = undefined;
+}
 
   async addFavoriteCity(city: string): Promise<void> {
     if (city === 'Aktuální poloha') {
@@ -83,7 +105,9 @@ ionViewWillLeave(): void {
     console.log('Uloženo!');
   }
 
-  async loadWeatherByCurrentLocation(): Promise<void> {
+ async loadWeatherByCurrentLocation(): Promise<void> {
+  console.log('Získávám aktuální polohu...');
+
   if (!navigator.geolocation) {
     alert('Geolokace není podporována.');
     return;
@@ -91,27 +115,36 @@ ionViewWillLeave(): void {
 
   navigator.geolocation.getCurrentPosition(
     async (position) => {
-      try {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
 
+      console.log('GPS souřadnice získány:', lat, lon);
+
+      this.currentLatitude = lat;
+      this.currentLongitude = lon;
+
+      try {
         const cityName = await firstValueFrom(
           this.geocodingService.getCityByCoordinates(lat, lon)
+          
         );
-        console.log('Zjištěné město:', cityName);
 
         this.selectedCity = cityName;
 
+        console.log('Zjištěné město:', cityName);
+
         this.weather$ = this.weatherService.getForecast(lat, lon);
+        console.log('Počasí přepnuto na GPS souřadnice');
+
+        this.cdr.detectChanges();
 
       } catch (error) {
-        console.error('Chyba při zjišťování lokality:', error);
-        alert('Nepodařilo se zjistit název lokality.');
+        console.error('Chyba:', error);
       }
     },
     (error) => {
-      console.error('Nepodařilo se získat polohu:', error);
-      alert('Nepodařilo se zjistit vaši polohu.');
+      console.error('Chyba geolokace:', error);
+      alert('Nepodařilo se získat polohu.');
     }
   );
 }

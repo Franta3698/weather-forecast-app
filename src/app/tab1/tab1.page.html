@@ -22,48 +22,32 @@
     </div>
   @if (weather$ | async; as weather) {
 
-    <h1>{{ getCity() }}</h1>
+    <h1>{{ selectedCity }}</h1>
 
     <h2>{{ weather.current.temperature_2m }} °C</h2>
 
     <p>
-      Feels like:
+      Pocitová teplota:
       {{ weather.current.apparent_temperature }} °C
     </p>
 
     <p>
-      Humidity:
+      Vlhkost:
       {{ weather.current.relative_humidity_2m }} %
     </p>
 
     <p>
-      Wind:
+      Rychlost větru:
       {{ weather.current.wind_speed_10m }} km/h
     </p>
 
-    <h2>Hourly forecast</h2>
+     <h2>Vývoj teploty během 24 hodin</h2>
 
+    <app-temperature-chart
+      [temperatures]="weather.hourly.temperature_2m.slice(0, 24)"
+      [times]="weather.hourly.time.slice(0, 24).map(t => t.substring(11, 16))"
+    />
 
-
-    <ion-list>
-      @for (
-        time of weather.hourly.time.slice(0, 24);
-        track time;
-        let i = $index
-      ) {
-        <ion-item>
-          <ion-label>
-            <h3>{{ time.substring(11, 16) }}</h3>
-            <p>Feels like: {{ weather.hourly.apparent_temperature[i] }} °C</p>
-            <p>Rain: {{ weather.hourly.precipitation_probability[i] }} %</p>
-          </ion-label>
-
-          <ion-note slot="end">
-            {{ weather.hourly.temperature_2m[i] }} °C
-          </ion-note>
-        </ion-item>
-      }
-    </ion-list>
 
   } @else {
     <ion-spinner></ion-spinner>

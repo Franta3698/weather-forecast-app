@@ -57,26 +57,29 @@ export class WeatherService {
     { params }
     );
   }
-  getForecastByCity(cityName: string): Observable<WeatherResponse> {
-  const params = new HttpParams()
-    .set('name', cityName)
-    .set('count', 1)
-    .set('language', 'cs')
-    .set('format', 'json');
+    getForecastByCity(cityName: string): Observable<WeatherResponse> {
+    console.log('Vyhledávám město:', cityName);
 
-  return this.http.get<GeocodingResponse>(
-    'https://geocoding-api.open-meteo.com/v1/search',
-    { params }
-  ).pipe(
-    switchMap(response => {
-      const city = response.results?.[0];
+    const params = new HttpParams()
+      .set('name', cityName)
+      .set('count', 1)
+      .set('language', 'cs')
+      .set('format', 'json');
 
-      if (!city) {
-        return throwError(() => new Error('Město nebylo nalezeno'));
-      }
+    return this.http.get<GeocodingResponse>(
+      'https://geocoding-api.open-meteo.com/v1/search',
+      { params }
+    ).pipe(
+      switchMap(response => {
+        const city = response.results?.[0];
 
-      return this.getForecast(city.latitude, city.longitude);
-    })
-  );
-}
+        if (!city) {
+          console.error('Město nebylo nalezeno:', cityName);
+          return throwError(() => new Error('Město nebylo nalezeno'));
+        }
+
+        return this.getForecast(city.latitude, city.longitude);
+      })
+    );
+  }
 }
