@@ -1,8 +1,12 @@
-ion-item {
-  --padding-start: 12px;
-  margin-bottom: 5px;
+ion-accordion {
+  margin-bottom: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+
+  border: 1px solid var(--ion-color-step-150, #80808040);
 }
 
-ion-label h2 {
-  font-weight: 600;
+ion-accordion ion-item {
+  --padding-start: 16px;
+  --min-height: 75px;
 }

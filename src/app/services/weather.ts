@@ -32,6 +32,7 @@ export interface WeatherResponse {
     weather_code: number[];
     temperature_2m_max: number[];
     temperature_2m_min: number[];
+    precipitation_probability_max: number[];
   };
 }
 @Injectable({
@@ -50,7 +51,15 @@ export class WeatherService {
     .set('hourly', 'temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m')
     .set('daily', 'weather_code,temperature_2m_max,temperature_2m_min')
     .set('timezone', 'auto')
-    .set('forecast_days', 7);
+    .set('forecast_days', 7)
+    .set('daily', [
+      'temperature_2m_max',
+      'temperature_2m_min',
+      'weather_code',
+      'precipitation_probability_max'
+    ].join(','))
+    .set('forecast_days', 7)
+    .set('timezone', 'auto');
 
     return this.http.get<WeatherResponse>(
     'https://api.open-meteo.com/v1/forecast',

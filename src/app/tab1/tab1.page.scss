@@ -1,0 +1,24 @@
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.search-container ion-item {
+  flex: 1;
+  min-width: 0;
+  --padding-start: 12px;
+}
+
+.city-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.city-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+}

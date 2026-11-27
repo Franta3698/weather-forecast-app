@@ -1,0 +1,67 @@
+
+:host {
+  display: block;
+}
+
+.daily-forecast {
+  margin-top: 20px;
+  padding: 14px;
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: 14px;
+}
+
+h2 {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.forecast-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px 42px 38px 38px;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 0;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+}
+
+.forecast-row:last-child {
+  border-bottom: none;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.forecast-date {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ion-color-medium);
+}
+
+.weather-icon {
+  font-size: 22px;
+  text-align: center;
+}
+
+.precipitation {
+  color: #3880ff;
+  font-size: 12px;
+  text-align: center;
+}
+
+.min-temperature {
+  color: var(--ion-color-medium);
+  text-align: right;
+}
+
+.max-temperature {
+  font-weight: 600;
+  text-align: right;
+}

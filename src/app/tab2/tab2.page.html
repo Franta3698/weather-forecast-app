@@ -1,3 +1,4 @@
+
 <ion-header>
   <ion-toolbar>
     <ion-title>Oblíbená města</ion-title>
@@ -5,39 +6,88 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  @if (loading) {
+
+  @if (loading && cities.length === 0) {
+
     <ion-spinner></ion-spinner>
     <p>Načítám města...</p>
+
+  } @else if (loadError) {
+
+    <p>{{ loadError }}</p>
+
   } @else if (cities.length === 0) {
+
     <h2>Zatím nemáš žádná oblíbená města.</h2>
     <p>Přidej si nějaké na první stránce.</p>
+
   } @else {
-    <ion-list>
+
+    <ion-accordion-group
+      [value]="expandedCity"
+      (ionChange)="onAccordionChange($event)">
+
       @for (city of cities; track city.name) {
-        <ion-item>
-          <ion-label>
-            <h2>{{ city.name }}</h2>
-            @if (city.temperature !== null) {
-              <p>{{ city.temperature }} °C</p>
-            } @else {
-              <p>Počasí se nepodařilo načíst.</p>
+
+        <ion-accordion [value]="city.name">
+
+          <ion-item slot="header">
+
+            <ion-label>
+
+              <h2>{{ city.name }}</h2>
+
+              @if (city.weather; as weather) {
+
+                <p>
+                  {{ weather.current.temperature_2m }} °C
+                </p>
+
+              } @else {
+
+                <p>Počasí se nepodařilo načíst.</p>
+
+              }
+
+            </ion-label>
+
+          </ion-item>
+
+          <div class="ion-padding" slot="content">
+
+            @if (expandedCity === city.name) {
+
+              @if (city.weather; as weather) {
+
+                <app-weather-detail
+                  [weather]="weather"
+                />
+
+              } @else {
+
+                <p>Předpověď není dostupná.</p>
+
+              }
+
+              <ion-button
+                expand="block"
+                color="danger"
+                fill="outline"
+                [disabled]="loading"
+                (click)="removeCity(city.name)">
+                Odebrat město
+              </ion-button>
+
             }
-          </ion-label>
-          <ion-button
-            slot="end"
-            fill="outline"
-            (click)="showCity(city.name)">
-            Zobrazit
-          </ion-button>
-            <ion-button
-            slot="end"
-            color="danger"
-            fill="outline"
-            (click)="removeCity(city.name)">
-            Odebrat
-          </ion-button>
-        </ion-item>
+
+          </div>
+
+        </ion-accordion>
+
       }
-    </ion-list>
+
+    </ion-accordion-group>
+
   }
+
 </ion-content>

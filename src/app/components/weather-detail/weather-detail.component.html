@@ -1,0 +1,44 @@
+
+<div class="current-temperature">
+  {{ weather().current.temperature_2m }} °C
+</div>
+
+<div class="weather-stats">
+
+  <div class="weather-stat">
+    <span>Pocitová</span>
+    <strong>
+      {{ weather().current.apparent_temperature }} °C
+    </strong>
+  </div>
+
+  <div class="weather-stat">
+    <span>Vlhkost</span>
+    <strong>
+      {{ weather().current.relative_humidity_2m }} %
+    </strong>
+  </div>
+
+  <div class="weather-stat">
+    <span>Vítr</span>
+    <strong>
+      {{ weather().current.wind_speed_10m }} km/h
+    </strong>
+  </div>
+
+</div>
+
+<div class="forecast-card">
+
+  <h2>Dnešní vývoj teploty</h2>
+
+  <app-temperature-chart
+    [temperatures]="temperatures()"
+    [times]="times()"
+  />
+
+</div>
+
+<app-daily-forecast
+  [daily]="weather().daily"
+/>

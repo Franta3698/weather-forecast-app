@@ -1,0 +1,43 @@
+
+<div class="daily-forecast">
+
+  <h2>Předpověď na 7 dní</h2>
+
+  @for (day of daily().time; track day; let i = $index) {
+
+    <div class="forecast-row">
+
+        <div class="day">
+        @if (i === 0) {
+            Dnes
+        } @else if (i === 1) {
+            Zítra
+        } @else {
+            {{ day | date:'EEEE':undefined:'cs-CZ' }}
+        }
+
+        <span class="forecast-date">
+            {{ day | date:'dd.MM.' }}
+        </span>
+        </div>
+      <div class="weather-icon">
+        {{ getWeatherIcon(daily().weather_code[i]) }}
+      </div>
+
+      <div class="precipitation">
+        {{ daily().precipitation_probability_max[i] }} %
+      </div>
+
+      <div class="min-temperature">
+        {{ daily().temperature_2m_min[i] }}°
+      </div>
+
+      <div class="max-temperature">
+        {{ daily().temperature_2m_max[i] }}°
+      </div>
+
+    </div>
+
+  }
+
+</div>

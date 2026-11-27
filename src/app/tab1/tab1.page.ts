@@ -1,5 +1,4 @@
-const REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minut
-import { Component, inject, ChangeDetectorRef} from '@angular/core';
+import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -8,144 +7,173 @@ import {
   IonSpinner,
   IonItem,
   IonButton,
-  IonInput
-} from '@ionic/angular';
+  IonInput, IonIcon } from '@ionic/angular';
+
 import { GeocodingService } from '../services/geocoding';
-import { firstValueFrom, interval, Subscription } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
 import { WeatherService } from '../services/weather';
 import { CityService } from '../services/city';
 import { CityComponent } from '../components/city/city.component';
 import { TemperatureChartComponent } from '../components/temperature-chart/temperature-chart.component';
+import { addIcons } from 'ionicons';
+import { searchOutline, locateOutline } from 'ionicons/icons';
+import { firstValueFrom, interval, Subscription } from 'rxjs';
+import { AsyncPipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { WeatherDetailComponent } from '../components/weather-detail/weather-detail.component';
+
+const REFRESH_INTERVAL = 10 * 60 * 1000;
+
 @Component({
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss'],
-  imports: [IonButton, IonHeader, 
-    IonInput,
-    IonButton,
-    IonItem,
+  imports: [IonIcon,
     IonHeader,
     IonToolbar,
     IonTitle,
     IonContent,
-    AsyncPipe,
     IonSpinner,
+    IonItem,
+    IonButton,
+    IonInput,
+    AsyncPipe,
     CityComponent,
-    TemperatureChartComponent
-  ],
+    WeatherDetailComponent],
 })
 export class Tab1Page {
+
+  constructor() {
+  addIcons({
+    searchOutline,
+    locateOutline
+  });
+}
+
   private weatherService = inject(WeatherService);
   private cityService = inject(CityService);
   private geocodingService = inject(GeocodingService);
-  private refreshSubscription?: Subscription;
-  private currentLatitude?: number;
-  private currentLongitude?: number;
   private cdr = inject(ChangeDetectorRef);
   private route = inject(ActivatedRoute);
-  selectedCity: string = 'Zlín';
 
-  weather$ = this.weatherService.getForecastByCity(this.selectedCity);
-ionViewWillEnter(): void {
-  const city = this.route.snapshot.queryParamMap.get('city');
+  private refreshSubscription?: Subscription;
 
-  if (city) {
-    this.changeCity(city);
-  } else {
-    this.refreshWeather();
-  }
+  private currentLatitude?: number;
+  private currentLongitude?: number;
 
-  this.refreshSubscription?.unsubscribe();
+  private initialized = false;
 
-  this.refreshSubscription = interval(REFRESH_INTERVAL)
-    .subscribe(() => {
+  selectedCity: string = 'Aktuální poloha';
+
+  weather$?: ReturnType<WeatherService['getForecastByCity']>;
+
+  ionViewWillEnter(): void {
+    const city = this.route.snapshot.queryParamMap.get('city');
+
+    if (city) {
+      this.changeCity(city);
+    } else if (!this.initialized) {
+      this.loadWeatherByCurrentLocation();
+    } else {
       this.refreshWeather();
-    });
-}
-refreshWeather(): void {
-  if (this.currentLatitude !== undefined &&
-      this.currentLongitude !== undefined) {
+    }
 
-    this.weather$ = this.weatherService.getForecast(
-      this.currentLatitude,
-      this.currentLongitude
-    );
+    this.initialized = true;
 
-  } else {
-    this.weather$ = this.weatherService.getForecastByCity(
-      this.selectedCity
-    );
+    this.refreshSubscription?.unsubscribe();
+
+    this.refreshSubscription = interval(REFRESH_INTERVAL)
+      .subscribe(() => {
+        this.refreshWeather();
+      });
   }
-}
-ionViewWillLeave(): void {
-  this.refreshSubscription?.unsubscribe();
-}
 
- changeCity(newCity: string): void {
-  const city = newCity.trim();
+  ionViewWillLeave(): void {
+    this.refreshSubscription?.unsubscribe();
+  }
 
-  if (!city) return;
+  refreshWeather(): void {
+    if (
+      this.currentLatitude !== undefined &&
+      this.currentLongitude !== undefined
+    ) {
+      this.weather$ = this.weatherService.getForecast(
+        this.currentLatitude,
+        this.currentLongitude
+      );
+    } else if (this.selectedCity !== 'Aktuální poloha') {
+      this.weather$ = this.weatherService.getForecastByCity(
+        this.selectedCity
+      );
+    }
+  }
 
-  this.weather$ = this.weatherService.getForecastByCity(city);
-  this.selectedCity = city;
+  changeCity(newCity: string): void {
+    const city = newCity.trim();
 
-  this.currentLatitude = undefined;
-  this.currentLongitude = undefined;
-}
+    if (!city) return;
+
+    this.selectedCity = city;
+
+    this.currentLatitude = undefined;
+    this.currentLongitude = undefined;
+
+    this.weather$ = this.weatherService.getForecastByCity(city);
+  }
 
   async addFavoriteCity(city: string): Promise<void> {
     if (city === 'Aktuální poloha') {
-    alert('nenačtenou polohu nezle přidat mezi oblíbená města.');
-    return;
-  }
-    console.log('Přijaté město:', city);
+      alert('Nenačtenou polohu nelze přidat mezi oblíbená města.');
+      return;
+    }
+
     await this.cityService.addCity(city);
-    console.log('Uloženo!');
+
+    console.log('Uloženo:', city);
   }
 
- async loadWeatherByCurrentLocation(): Promise<void> {
-  console.log('Získávám aktuální polohu...');
+  loadWeatherByCurrentLocation(): void {
+    console.log('Získávám aktuální polohu...');
 
-  if (!navigator.geolocation) {
-    alert('Geolokace není podporována.');
-    return;
-  }
+    if (!navigator.geolocation) {
+      this.changeCity('Zlín');
+      return;
+    }
 
-  navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
 
-      console.log('GPS souřadnice získány:', lat, lon);
+        this.currentLatitude = lat;
+        this.currentLongitude = lon;
 
-      this.currentLatitude = lat;
-      this.currentLongitude = lon;
-
-      try {
-        const cityName = await firstValueFrom(
-          this.geocodingService.getCityByCoordinates(lat, lon)
-          
-        );
-
-        this.selectedCity = cityName;
-
-        console.log('Zjištěné město:', cityName);
+        try {
+          this.selectedCity = await firstValueFrom(
+            this.geocodingService.getCityByCoordinates(lat, lon)
+          );
+        } catch (error) {
+          console.error('Nepodařilo se zjistit město:', error);
+          this.selectedCity = 'Aktuální poloha';
+        }
 
         this.weather$ = this.weatherService.getForecast(lat, lon);
-        console.log('Počasí přepnuto na GPS souřadnice');
 
         this.cdr.detectChanges();
+      },
 
-      } catch (error) {
-        console.error('Chyba:', error);
+      (error) => {
+        console.error('Chyba geolokace:', error);
+
+        if (!this.weather$) {
+          this.changeCity('Zlín');
+        }
+
+        this.cdr.detectChanges();
+      },
+
+      {
+        timeout: 10000
       }
-    },
-    (error) => {
-      console.error('Chyba geolokace:', error);
-      alert('Nepodařilo se získat polohu.');
-    }
-  );
-}
+    );
+  }
 }

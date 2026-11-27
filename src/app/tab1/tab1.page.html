@@ -1,57 +1,61 @@
+
 <ion-header>
   <ion-toolbar>
-    <ion-title>Rychlý přehled</ion-title>
+    <ion-title>Počasí</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <div class="city-management" style="margin-bottom: 20px;">
-      <ion-item>
-        <ion-input label="Zadej město" labelPlacement="stacked" placeholder="např. Praha, Ostrava..." #cityInput></ion-input>
-      </ion-item>
-      <ion-button expand="block" (click)="changeCity(cityInput.value?.toString() ?? '')" style="margin-top: 10px;">
-        Najít město
+
+  <div class="search-container">
+
+    <ion-item>
+      <ion-input
+        placeholder="Vyhledat město..."
+        #cityInput
+        (keyup.enter)="changeCity(cityInput.value?.toString() ?? '')">
+      </ion-input>
+
+      <ion-button
+        slot="end"
+        fill="clear"
+        aria-label="Vyhledat město"
+        (click)="changeCity(cityInput.value?.toString() ?? '')">
+
+        <ion-icon slot="icon-only" name="search-outline" />
+
       </ion-button>
+    </ion-item>
+
+    <ion-button
+      fill="clear"
+      aria-label="Použít aktuální polohu"
+      (click)="loadWeatherByCurrentLocation()">
+
+      <ion-icon slot="icon-only" name="locate-outline" />
+
+    </ion-button>
+
+  </div>
+
+  @if (weather$ | async; as weather) {
+
+    <div class="city-header">
+      <h1>{{ selectedCity }}</h1>
+
       <app-city
         [cityName]="selectedCity"
         (addFavorite)="addFavoriteCity($event)"
       />
-      <ion-button expand="block" color="secondary" (click)="loadWeatherByCurrentLocation()" style="margin-top: 10px;">
-      Použít moji aktuální polohu
-      </ion-button>
     </div>
-  @if (weather$ | async; as weather) {
 
-    <h1>{{ selectedCity }}</h1>
-
-    <h2>{{ weather.current.temperature_2m }} °C</h2>
-
-    <p>
-      Pocitová teplota:
-      {{ weather.current.apparent_temperature }} °C
-    </p>
-
-    <p>
-      Vlhkost:
-      {{ weather.current.relative_humidity_2m }} %
-    </p>
-
-    <p>
-      Rychlost větru:
-      {{ weather.current.wind_speed_10m }} km/h
-    </p>
-
-     <h2>Vývoj teploty během 24 hodin</h2>
-
-    <app-temperature-chart
-      [temperatures]="weather.hourly.temperature_2m.slice(0, 24)"
-      [times]="weather.hourly.time.slice(0, 24).map(t => t.substring(11, 16))"
-    />
-
+    <app-weather-detail [weather]="weather" />
 
   } @else {
+
     <ion-spinner></ion-spinner>
-    <p>Loading weather...</p>
+    <p>Načítám počasí...</p>
+
   }
 
 </ion-content>
